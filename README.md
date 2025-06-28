@@ -86,6 +86,15 @@ Traditional freelance platforms are broken:
 
 ### **Installation**
 
+#### **🚀 Option 1: Automated Setup (Recommended)**
+```bash
+git clone https://github.com/belulok/fairlance-project.git
+cd fairlance-project
+./setup.sh  # Automated setup with environment files
+```
+
+#### **🔧 Option 2: Manual Setup**
+
 1. **Clone the repository**
 ```bash
 git clone https://github.com/belulok/fairlance-project.git
