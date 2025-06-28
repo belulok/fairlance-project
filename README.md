@@ -88,8 +88,8 @@ Traditional freelance platforms are broken:
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/your-username/fairlance.git
-cd fairlance
+git clone https://github.com/belulok/fairlance-project.git
+cd fairlance-project
 ```
 
 2. **Setup Backend**
@@ -153,7 +153,32 @@ SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR-PROJECT-ID
 ETHERSCAN_API_KEY=your-etherscan-api-key
 ```
 
-## 🔗 **Web3 Integration Status**
+## � **Project Structure**
+
+```
+fairlance-project/
+├── 📁 frontend/          # Next.js 14 + React 18 + TypeScript
+│   ├── app/             # App router pages and components
+│   ├── components/      # Reusable UI components
+│   ├── hooks/           # Custom React hooks (Web3 integration)
+│   └── lib/             # Utility functions and API calls
+├── 📁 backend/           # Express.js + MongoDB + MasChain
+│   ├── src/             # Source code
+│   │   ├── routes/      # API endpoints
+│   │   ├── models/      # Database models
+│   │   ├── services/    # MasChain integration
+│   │   └── middleware/  # Authentication & validation
+│   └── server-simple.js # Simplified server for demo
+├── 📁 contracts/        # Smart contracts + Hardhat
+│   ├── FairLanceEscrow.sol  # Main escrow contract
+│   ├── deploy.js        # Deployment scripts
+│   └── hardhat.config.js    # Hardhat configuration
+├── 📄 README.md         # This file
+├── 📄 WEB3_SETUP.md     # Web3 integration guide
+└── 📄 DEPLOYMENT_GUIDE.md   # Complete setup instructions
+```
+
+## �🔗 **Web3 Integration Status**
 
 ### ✅ **Currently Working**
 - **Wallet Connection**: MetaMask integration with RainbowKit
