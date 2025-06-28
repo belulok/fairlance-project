@@ -1,0 +1,11 @@
+# Include Dockerfile explicitly
+!Dockerfile
+
+# Standard ignores
+node_modules/
+npm-debug.log*
+.env
+.git/
+.gitignore
+logs/
+*.log

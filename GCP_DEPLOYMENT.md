@@ -76,7 +76,7 @@ gcloud run deploy fairlance-backend \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars="MONGODB_URI=mongodb+srv://admin:1234567890@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0"
+  --set-env-vars="MONGODB_URI=YOUR_MONGODB_CONNECTION_STRING"
 ```
 
 #### **Step 3: Deploy Frontend**
@@ -105,7 +105,7 @@ gcloud run deploy fairlance-frontend \
 ```env
 NODE_ENV=production
 PORT=5001
-MONGODB_URI=mongodb+srv://admin:1234567890@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://USERNAME:PASSWORD@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0
 JWT_SECRET=your-super-secret-jwt-key
 MASCHAIN_API_URL=https://service-testnet.maschain.com
 MASCHAIN_API_KEY=your-maschain-api-key

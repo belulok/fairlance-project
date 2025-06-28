@@ -94,7 +94,7 @@ print_info "Updating backend CORS settings..."
 gcloud run services update fairlance-backend \
   --platform managed \
   --region $REGION \
-  --set-env-vars="NODE_ENV=production,PORT=5001,MONGODB_URI=mongodb+srv://admin:1234567890@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0,JWT_SECRET=your-super-secret-jwt-key,MASCHAIN_API_URL=https://service-testnet.maschain.com,MASCHAIN_API_KEY=your-maschain-api-key,MASCHAIN_API_SECRET=your-maschain-api-secret,CORS_ORIGIN=$FRONTEND_URL"
+  --set-env-vars="NODE_ENV=production,PORT=5001,MONGODB_URI=${MONGODB_URI},JWT_SECRET=${JWT_SECRET},MASCHAIN_API_URL=https://service-testnet.maschain.com,MASCHAIN_API_KEY=${MASCHAIN_API_KEY},MASCHAIN_API_SECRET=${MASCHAIN_API_SECRET},CORS_ORIGIN=$FRONTEND_URL"
 
 # Test the deployments (toloong2 approach)
 print_info "Testing the deployments..."
