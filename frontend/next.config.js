@@ -20,17 +20,27 @@ const nextConfig = {
   // Disable SWC minifier to avoid RainbowKit issues
   swcMinify: false,
 
-  // Simple webpack configuration to avoid worker issues
-  webpack: (config) => {
+  // Aggressive webpack configuration to completely avoid worker issues
+  webpack: (config, { webpack }) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
 
     // Fix for RainbowKit build issues
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
 
-    // Completely disable minification for problematic files
+    // Ignore the problematic worker file completely using IgnorePlugin
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /HeartbeatWorker\.js$/,
+      })
+    );
+
+    // Also add it as external
+    config.externals.push(/HeartbeatWorker\.js$/);
+
+    // Completely disable minification
     config.optimization = {
       ...config.optimization,
-      minimize: false, // Disable minification entirely to avoid worker issues
+      minimize: false,
     };
 
     return config;

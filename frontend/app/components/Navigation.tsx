@@ -31,19 +31,9 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  // Use wagmi hooks with error handling
-  let isConnected = false;
-  let address: string | undefined;
-
-  try {
-    const account = useAccount();
-    isConnected = mounted ? account.isConnected : false;
-    address = mounted ? account.address : undefined;
-  } catch (error) {
-    // Wagmi not available, use defaults
-    isConnected = false;
-    address = undefined;
-  }
+  // Simplified for demo - no wagmi/RainbowKit
+  const isConnected = false;
+  const address: string | undefined = undefined;
 
   useEffect(() => {
     setMounted(true);
@@ -120,7 +110,12 @@ export function Navigation() {
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               </div>
             )}
-            <ClientOnlyConnectButton />
+            <Button
+              onClick={() => alert('Wallet connection temporarily disabled for demo')}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              Connect Wallet
+            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -177,7 +172,12 @@ export function Navigation() {
                   </div>
                 )}
                 <div className="px-3">
-                  <ClientOnlyConnectButton />
+                  <Button
+                    onClick={() => alert('Wallet connection temporarily disabled for demo')}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Connect Wallet
+                  </Button>
                 </div>
               </div>
             </div>
