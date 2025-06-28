@@ -186,9 +186,12 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
+// Cloud Run uses dynamic port assignment, fallback to 5001 for local dev
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
+// Start server (bind to 0.0.0.0 for Cloud Run)
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 FairLance Backend (Simple) running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 CORS Origin: ${process.env.CORS_ORIGIN || 'http://localhost:3000'}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
 });

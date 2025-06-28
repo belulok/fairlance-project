@@ -1,0 +1,39 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/fairlance-backend:$COMMIT_SHA', '.']
+  
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/fairlance-backend:$COMMIT_SHA']
+  
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'fairlance-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/fairlance-backend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,PORT=8080,MONGODB_URI=mongodb+srv://admin:1234567890@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0,JWT_SECRET=your-super-secret-jwt-key-for-production-2024,MASCHAIN_API_URL=https://service-testnet.maschain.com,MASCHAIN_API_KEY=your-maschain-api-key,MASCHAIN_API_SECRET=your-maschain-api-secret,CORS_ORIGIN=*'
+
+images:
+  - 'gcr.io/$PROJECT_ID/fairlance-backend:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

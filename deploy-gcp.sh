@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# 🚀 FairLance GCP Cloud Run Deployment Script
+# 🚀 FairLance GCP Cloud Run Deployment Script (Based on Toloong2 Architecture)
+set -e
 
 # Colors for output
 RED='\033[0;31m'
@@ -36,8 +37,14 @@ if ! command -v gcloud &> /dev/null; then
     exit 1
 fi
 
+# Check if user is authenticated
+if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q .; then
+    print_warning "Not authenticated with Google Cloud. Please run: gcloud auth login"
+    exit 1
+fi
+
 # Set project variables
-PROJECT_ID=${1:-"fairlance-demo"}
+PROJECT_ID=${1:-"fairlance-demo-2024"}
 REGION=${2:-"us-central1"}
 
 print_info "Project ID: $PROJECT_ID"
@@ -53,18 +60,12 @@ gcloud services enable cloudbuild.googleapis.com
 gcloud services enable run.googleapis.com
 gcloud services enable containerregistry.googleapis.com
 
-# Build and deploy backend
-print_info "Building and deploying backend..."
+# Deploy backend using Cloud Build (toloong2 approach)
+print_info "Building and deploying backend with Cloud Build..."
 cd backend
 
-gcloud builds submit --tag gcr.io/$PROJECT_ID/fairlance-backend
-
-gcloud run deploy fairlance-backend \
-  --image gcr.io/$PROJECT_ID/fairlance-backend \
-  --platform managed \
-  --region $REGION \
-  --allow-unauthenticated \
-  --set-env-vars="NODE_ENV=production,PORT=5001,MONGODB_URI=mongodb+srv://admin:1234567890@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0,JWT_SECRET=your-super-secret-jwt-key,MASCHAIN_API_URL=https://service-testnet.maschain.com,MASCHAIN_API_KEY=your-maschain-api-key,MASCHAIN_API_SECRET=your-maschain-api-secret,CORS_ORIGIN=*"
+print_info "Building and deploying with Cloud Build..."
+gcloud builds submit --config cloudbuild.yaml .
 
 # Get backend URL
 BACKEND_URL=$(gcloud run services describe fairlance-backend --platform managed --region $REGION --format 'value(status.url)')
@@ -72,23 +73,15 @@ print_status "Backend deployed at: $BACKEND_URL"
 
 cd ..
 
-# Build and deploy frontend
-print_info "Building and deploying frontend..."
+# Deploy frontend using Cloud Build
+print_info "Building and deploying frontend with Cloud Build..."
 cd frontend
 
-# Set environment variables for frontend build
-export NEXT_PUBLIC_API_URL="$BACKEND_URL/api"
-export NEXT_PUBLIC_APP_NAME="FairLance"
-export NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID="c4f79cc821944d9680842e34466bfbd"
+# Update frontend cloudbuild.yaml with backend URL
+sed -i.bak "s|NEXT_PUBLIC_API_URL=.*,|NEXT_PUBLIC_API_URL=$BACKEND_URL/api,|g" cloudbuild.yaml
 
-gcloud builds submit --tag gcr.io/$PROJECT_ID/fairlance-frontend
-
-gcloud run deploy fairlance-frontend \
-  --image gcr.io/$PROJECT_ID/fairlance-frontend \
-  --platform managed \
-  --region $REGION \
-  --allow-unauthenticated \
-  --set-env-vars="NEXT_PUBLIC_API_URL=$BACKEND_URL/api,NEXT_PUBLIC_APP_NAME=FairLance,NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=c4f79cc821944d9680842e34466bfbd"
+print_info "Building and deploying frontend with Cloud Build..."
+gcloud builds submit --config cloudbuild.yaml .
 
 # Get frontend URL
 FRONTEND_URL=$(gcloud run services describe fairlance-frontend --platform managed --region $REGION --format 'value(status.url)')
@@ -103,6 +96,25 @@ gcloud run services update fairlance-backend \
   --region $REGION \
   --set-env-vars="NODE_ENV=production,PORT=5001,MONGODB_URI=mongodb+srv://admin:1234567890@cluster0.l9lsqjb.mongodb.net/fairlance?retryWrites=true&w=majority&appName=Cluster0,JWT_SECRET=your-super-secret-jwt-key,MASCHAIN_API_URL=https://service-testnet.maschain.com,MASCHAIN_API_KEY=your-maschain-api-key,MASCHAIN_API_SECRET=your-maschain-api-secret,CORS_ORIGIN=$FRONTEND_URL"
 
+# Test the deployments (toloong2 approach)
+print_info "Testing the deployments..."
+
+# Test backend health
+if curl -f -s "$BACKEND_URL/api/health" > /dev/null; then
+    print_status "Backend health check passed!"
+else
+    print_error "Backend health check failed. Please check the logs."
+    print_warning "To view logs, run: gcloud logs read --service=fairlance-backend --region=$REGION"
+fi
+
+# Test frontend
+if curl -f -s "$FRONTEND_URL" > /dev/null; then
+    print_status "Frontend health check passed!"
+else
+    print_error "Frontend health check failed. Please check the logs."
+    print_warning "To view logs, run: gcloud logs read --service=fairlance-frontend --region=$REGION"
+fi
+
 echo ""
 print_status "🎉 Deployment Complete!"
 echo "========================"
@@ -112,3 +124,9 @@ print_info "🔧 Backend:  $BACKEND_URL"
 print_info "🔍 Health:   $BACKEND_URL/api/health"
 echo ""
 print_status "Your FairLance platform is now live on GCP Cloud Run! 🚀"
+echo ""
+print_warning "📝 Next steps:"
+echo "1. Update MetaMask to connect to your live frontend"
+echo "2. Test wallet connection and Web3 features"
+echo "3. Deploy smart contracts to testnet"
+echo "4. Update contract addresses in environment variables"
