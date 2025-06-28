@@ -1,0 +1,15 @@
+[build]
+  command = "npm run build"
+  publish = "out"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID = "default-project-id"
+  NEXT_PUBLIC_APP_NAME = "Governance DApp"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
