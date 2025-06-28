@@ -15,8 +15,8 @@ import {
   Shield,
   Award
 } from 'lucide-react';
-import { useAccount } from 'wagmi';
-import { ClientOnlyConnectButton } from './ClientOnlyConnectButton';
+// import { useAccount } from 'wagmi';
+// import { ClientOnlyConnectButton } from './ClientOnlyConnectButton';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
