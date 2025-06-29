@@ -3,6 +3,13 @@ const nextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
 
+  // Allow cross-origin requests from our domain
+  allowedDevOrigins: [
+    'fairlance.hackathn.xyz',
+    '152.42.239.61',
+    'localhost:3000'
+  ],
+
   images: {
     remotePatterns: [
       {

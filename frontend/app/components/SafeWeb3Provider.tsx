@@ -27,18 +27,51 @@ export function SafeWeb3Provider({ children }: { children: React.ReactNode }) {
   const connect = async () => {
     if (typeof window !== 'undefined' && window.ethereum) {
       try {
+        // Request account access
         const accounts = await window.ethereum.request({
           method: 'eth_requestAccounts',
         });
+
         if (accounts.length > 0) {
           setIsConnected(true);
           setAddress(accounts[0]);
+
+          // Try to switch to MasChain network
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: '0x2BA' }], // 698 in hex
+            });
+          } catch (switchError: any) {
+            // If network doesn't exist, add it
+            if (switchError.code === 4902) {
+              try {
+                await window.ethereum.request({
+                  method: 'wallet_addEthereumChain',
+                  params: [{
+                    chainId: '0x2BA',
+                    chainName: 'MasChain',
+                    nativeCurrency: {
+                      name: 'MAS',
+                      symbol: 'MAS',
+                      decimals: 18,
+                    },
+                    rpcUrls: ['https://rpc.maschain.com'],
+                    blockExplorerUrls: ['https://explorer.maschain.com'],
+                  }],
+                });
+              } catch (addError) {
+                console.error('Failed to add MasChain network:', addError);
+              }
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to connect wallet:', error);
+        alert('Failed to connect wallet. Please try again.');
       }
     } else {
-      alert('Please install MetaMask to connect your wallet');
+      alert('Please install MetaMask to connect your wallet.\n\nMetaMask is required to use FairLance.');
     }
   };
 
