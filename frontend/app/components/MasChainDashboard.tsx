@@ -7,29 +7,33 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { 
-  Wallet, 
-  Shield, 
-  Coins, 
-  FileContract, 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  Wallet,
+  Shield,
+  Coins,
+  FileContract,
+  CheckCircle,
+  XCircle,
+  Clock,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  ArrowUpRight,
+  ArrowDownLeft,
+  TrendingUp,
+  Users
 } from 'lucide-react';
 import { useMasChain } from '@/app/services/maschain';
 
 export function MasChainDashboard() {
-  const { 
-    isConnected, 
-    isLoading, 
-    error, 
-    walletAddress, 
-    kycStatus, 
-    createWallet, 
-    initiateKYC, 
-    refreshStatus 
+  const {
+    isConnected,
+    isLoading,
+    error,
+    walletAddress,
+    kycStatus,
+    createWallet,
+    initiateKYC,
+    refreshStatus
   } = useMasChain();
 
   const [kycForm, setKycForm] = useState({
@@ -37,6 +41,40 @@ export function MasChainDashboard() {
     email: '',
     phone: ''
   });
+
+  const [demoData, setDemoData] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [walletBalance, setWalletBalance] = useState('0.00');
+
+  // Demo wallet address for testing
+  const demoWalletAddress = '0x742d35Cc6634C0532925a3b8D4C0532925a3b8D4';
+
+  useEffect(() => {
+    loadDemoData();
+  }, []);
+
+  const loadDemoData = async () => {
+    try {
+      // Load demo data
+      const response = await fetch('http://localhost:5001/api/maschain/demo/data');
+      if (response.ok) {
+        const data = await response.json();
+        setDemoData(data.data);
+      }
+
+      // Load demo transactions
+      const txResponse = await fetch(`http://localhost:5001/api/maschain/wallet/transactions/${demoWalletAddress}`);
+      if (txResponse.ok) {
+        const txData = await txResponse.json();
+        setTransactions(txData.data || []);
+      }
+
+      // Set demo wallet balance
+      setWalletBalance('1,250.75');
+    } catch (error) {
+      console.error('Failed to load demo data:', error);
+    }
+  };
 
   const handleCreateWallet = async () => {
     try {
@@ -123,29 +161,42 @@ export function MasChainDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {walletAddress ? (
+            {/* Demo Wallet Display */}
+            <div className="space-y-4">
               <div>
-                <Label>Wallet Address</Label>
+                <Label>Demo Wallet Address</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <code className="bg-muted px-2 py-1 rounded text-sm">
-                    {walletAddress}
+                  <code className="bg-muted px-2 py-1 rounded text-sm flex-1">
+                    {demoWalletAddress}
                   </code>
                   <Button variant="outline" size="sm">
                     <ExternalLink className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-muted-foreground mb-4">
-                  No wallet found. Create one to get started.
-                </p>
-                <Button onClick={handleCreateWallet} disabled={isLoading}>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-green-50 p-3 rounded-lg">
+                  <div className="text-sm text-green-600 font-medium">Balance</div>
+                  <div className="text-lg font-bold text-green-700">{walletBalance} MAS</div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg">
+                  <div className="text-sm text-blue-600 font-medium">Transactions</div>
+                  <div className="text-lg font-bold text-blue-700">{transactions.length}</div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleCreateWallet} disabled={isLoading} size="sm">
                   <Wallet className="w-4 h-4 mr-2" />
-                  Create Wallet
+                  Create New Wallet
+                </Button>
+                <Button variant="outline" onClick={loadDemoData} size="sm">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
                 </Button>
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
@@ -221,15 +272,28 @@ export function MasChainDashboard() {
               Manage skill tokens and payments
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-center py-4">
-              <p className="text-muted-foreground mb-4">
-                Token features will be available after wallet creation and KYC verification.
-              </p>
-              <Button variant="outline" disabled>
-                <Coins className="w-4 h-4 mr-2" />
-                Coming Soon
-              </Button>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-purple-50 p-3 rounded-lg">
+                <div className="text-sm text-purple-600 font-medium">SKILL Tokens</div>
+                <div className="text-lg font-bold text-purple-700">75.50</div>
+              </div>
+              <div className="bg-orange-50 p-3 rounded-lg">
+                <div className="text-sm text-orange-600 font-medium">Earned This Month</div>
+                <div className="text-lg font-bold text-orange-700">225.75 MAS</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Quick Transfer</Label>
+              <div className="flex gap-2">
+                <Input placeholder="Recipient address" className="flex-1" />
+                <Input placeholder="Amount" className="w-24" />
+                <Button size="sm">
+                  <ArrowUpRight className="w-4 h-4 mr-1" />
+                  Send
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -258,6 +322,76 @@ export function MasChainDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Transaction History */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Recent Transactions
+          </CardTitle>
+          <CardDescription>
+            Your latest blockchain transactions
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {transactions.length > 0 ? (
+              transactions.slice(0, 5).map((tx, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${
+                      tx.from_wallet === demoWalletAddress
+                        ? 'bg-red-100 text-red-600'
+                        : 'bg-green-100 text-green-600'
+                    }`}>
+                      {tx.from_wallet === demoWalletAddress ? (
+                        <ArrowUpRight className="w-4 h-4" />
+                      ) : (
+                        <ArrowDownLeft className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium">
+                        {tx.type === 'project_payment' ? 'Project Payment' :
+                         tx.type === 'skill_token_transfer' ? 'Skill Token Transfer' :
+                         'Token Transfer'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(tx.timestamp).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-medium ${
+                      tx.from_wallet === demoWalletAddress ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {tx.from_wallet === demoWalletAddress ? '-' : '+'}
+                      {tx.amount} {tx.currency}
+                    </div>
+                    <Badge variant={tx.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                      {tx.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No transactions yet</p>
+              </div>
+            )}
+          </div>
+
+          {transactions.length > 5 && (
+            <div className="mt-4 text-center">
+              <Button variant="outline" size="sm">
+                View All Transactions
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Quick Links */}
       <Card>

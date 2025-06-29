@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const masChainService = require('../services/maschain');
+// Use mock service for demo
+const masChainService = require('../services/mockMaschain');
 const { auth } = require('../src/middleware/auth');
 
 // Health check endpoint
@@ -236,6 +237,42 @@ router.get('/explorer/:txHash', (req, res) => {
 router.get('/portal', (req, res) => {
   const portalURL = masChainService.getPortalURL();
   res.redirect(portalURL);
+});
+
+// Demo-specific routes
+router.get('/demo/data', async (req, res) => {
+  try {
+    const demoData = masChainService.getAllDemoData();
+    res.json({
+      success: true,
+      message: 'Demo data retrieved successfully',
+      data: demoData
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get demo data',
+      error: error.message
+    });
+  }
+});
+
+router.get('/wallet/transactions/:address', async (req, res) => {
+  try {
+    const { address } = req.params;
+    const transactions = await masChainService.getWalletTransactions(address);
+
+    res.json({
+      success: true,
+      data: transactions.data
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get wallet transactions',
+      error: error.message
+    });
+  }
 });
 
 module.exports = router;

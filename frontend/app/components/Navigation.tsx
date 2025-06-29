@@ -25,6 +25,7 @@ const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Features', href: '/features', icon: Award },
   { name: 'Projects', href: '/projects', icon: Briefcase },
+  { name: 'Demo Projects', href: '/demo-projects', icon: FileText },
   { name: 'MasChain', href: '/maschain', icon: LinkIcon },
   { name: 'Dashboard', href: '/dashboard', icon: User, requiresAuth: true },
   { name: 'My Proposals', href: '/my-proposals', icon: FileText, requiresAuth: true },

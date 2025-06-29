@@ -38,6 +38,9 @@ app.use('/api/tokens', require('./src/routes/tokens'));
 // MasChain Integration Routes
 app.use('/api/maschain', require('./routes/maschain'));
 
+// Demo Projects Routes
+app.use('/api/demo/projects', require('./routes/demoProjects'));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
