@@ -5,23 +5,27 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Home, 
-  Briefcase, 
-  User, 
-  FileText, 
-  Menu, 
+import {
+  Home,
+  Briefcase,
+  User,
+  FileText,
+  Menu,
   X,
   Shield,
-  Award
+  Award,
+  Link as LinkIcon
 } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { ClientOnlyConnectButton } from './ClientOnlyConnectButton';
+import { SafeConnectButton } from './SafeConnectButton';
+import { MetaMaskConnectButton } from './MetaMaskConnectButton';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Features', href: '/features', icon: Award },
   { name: 'Projects', href: '/projects', icon: Briefcase },
+  { name: 'MasChain', href: '/maschain', icon: LinkIcon },
   { name: 'Dashboard', href: '/dashboard', icon: User, requiresAuth: true },
   { name: 'My Proposals', href: '/my-proposals', icon: FileText, requiresAuth: true },
 ];
@@ -110,12 +114,7 @@ export function Navigation() {
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               </div>
             )}
-            <Button
-              onClick={() => alert('Wallet connection temporarily disabled for demo')}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              Connect Wallet
-            </Button>
+            <SafeConnectButton />
           </div>
 
           {/* Mobile menu button */}
@@ -172,12 +171,7 @@ export function Navigation() {
                   </div>
                 )}
                 <div className="px-3">
-                  <Button
-                    onClick={() => alert('Wallet connection temporarily disabled for demo')}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    Connect Wallet
-                  </Button>
+                  <SafeConnectButton />
                 </div>
               </div>
             </div>

@@ -35,6 +35,9 @@ app.use('/api/kyc', require('./src/routes/kyc'));
 app.use('/api/certificates', require('./src/routes/certificates'));
 app.use('/api/tokens', require('./src/routes/tokens'));
 
+// MasChain Integration Routes
+app.use('/api/maschain', require('./routes/maschain'));
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
