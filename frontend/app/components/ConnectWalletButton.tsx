@@ -3,10 +3,27 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Button } from '@/components/ui/button';
 import { Wallet } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 export function ConnectWalletButton() {
-  return (
-    <ConnectButton.Custom>
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button disabled className="web3-button">
+        <Wallet className="mr-2 h-4 w-4" />
+        Loading...
+      </Button>
+    );
+  }
+
+  try {
+    return (
+      <ConnectButton.Custom>
       {({
         account,
         chain,
@@ -85,5 +102,14 @@ export function ConnectWalletButton() {
         );
       }}
     </ConnectButton.Custom>
-  );
+    );
+  } catch (error) {
+    console.warn('RainbowKit provider not available:', error);
+    return (
+      <Button disabled className="web3-button">
+        <Wallet className="mr-2 h-4 w-4" />
+        Connect Wallet
+      </Button>
+    );
+  }
 }

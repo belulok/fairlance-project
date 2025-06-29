@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Shield, Users, Zap, ChevronRight, Sparkles, ExternalLink, DollarSign, Globe, Code } from 'lucide-react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
-import { ConnectWalletButton } from '@/app/components/ConnectWalletButton';
+import { SafeConnectButton } from '@/app/components/SafeConnectButton';
+import { useSafeWeb3 } from '@/app/components/SafeWeb3Provider';
 import { useEffect, useState } from 'react';
 
 // Mock featured projects data
@@ -107,8 +108,24 @@ function FeatureCard({ icon: Icon, title, description, link }: {
   );
 }
 
+// Safe hook wrapper that handles provider errors
+function useSafeAccount() {
+  const fallback = useSafeWeb3();
+
+  try {
+    const wagmiAccount = useAccount();
+    return wagmiAccount;
+  } catch (error) {
+    console.warn('Wagmi provider not available, using fallback:', error);
+    return {
+      isConnected: fallback.isConnected,
+      address: fallback.address
+    };
+  }
+}
+
 export function HomeContent() {
-  const { isConnected } = useAccount();
+  const { isConnected } = useSafeAccount();
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -127,7 +144,13 @@ export function HomeContent() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-500"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -189,7 +212,7 @@ export function HomeContent() {
                     transition={{ delay: 0.7, duration: 0.8 }}
                     className="flex flex-col sm:flex-row gap-4"
                   >
-                    <ConnectWalletButton />
+                    <SafeConnectButton />
                     {isConnected && (
                       <Link href="/projects">
                         <Button className="web3-button group">
