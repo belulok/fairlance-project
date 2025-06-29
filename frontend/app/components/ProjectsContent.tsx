@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ClientOnlyConnectButton } from '@/app/components/ClientOnlyConnectButton';
 import { api, type Project } from '@/lib/api';
+import SimplePagination from './SimplePagination';
 
 // Mock freelance projects data
 const mockProjects = [
@@ -219,7 +220,7 @@ function ProjectCard({ project }: { project: any }) {
               <div className="flex items-center gap-2 text-sm">
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span>{project.client.rating}</span>
+                  <span>{Number(project.client.rating).toFixed(1)}</span>
                 </div>
                 <span className="text-muted-foreground">({project.client.reviews} reviews)</span>
               </div>
@@ -261,6 +262,10 @@ export function ProjectsContent() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProjects, setTotalProjects] = useState(0);
+  const projectsPerPage = 12;
 
   useEffect(() => {
     setMounted(true);
@@ -269,23 +274,37 @@ export function ProjectsContent() {
 
   useEffect(() => {
     if (mounted) {
+      setCurrentPage(1); // Reset to first page when filters change
       loadProjects();
     }
   }, [searchTerm, selectedCategory, sortBy, mounted]);
+
+  useEffect(() => {
+    if (mounted) {
+      loadProjects();
+    }
+  }, [currentPage, mounted]);
 
   const loadProjects = async () => {
     try {
       setLoading(true);
       setError(null);
 
+      console.log('🚀 Loading projects for page:', currentPage);
+
       const response = await api.getProjects({
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         search: searchTerm || undefined,
         sort: sortBy,
-        status: 'open'
+        status: 'open',
+        page: currentPage,
+        limit: projectsPerPage
       });
 
+      console.log('🚀 API Response:', response);
       setProjects(response.projects || []);
+      setTotalProjects(response.total || 0);
+      setTotalPages(Math.ceil((response.total || 0) / projectsPerPage));
     } catch (err) {
       console.error('Failed to load projects:', err);
       setError('Failed to load projects. Please try again.');
@@ -373,8 +392,18 @@ export function ProjectsContent() {
           {/* Results */}
           <div className="flex justify-between items-center mb-6">
             <p className="text-muted-foreground">
-              {loading ? 'Loading...' : `${projects.length} project${projects.length !== 1 ? 's' : ''} found`}
+              {loading ? 'Loading...' : `${totalProjects} project${totalProjects !== 1 ? 's' : ''} found`}
             </p>
+          </div>
+
+          {/* Pagination - Top */}
+          <div style={{ position: 'relative', zIndex: 1000 }}>
+            <SimplePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalProjects={totalProjects}
+              onPageChange={setCurrentPage}
+            />
           </div>
 
           {/* Error State */}
@@ -431,6 +460,8 @@ export function ProjectsContent() {
               </Button>
             </div>
           )}
+
+
         </div>
       </div>
     </div>

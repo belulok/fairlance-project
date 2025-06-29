@@ -76,6 +76,19 @@ export function Features() {
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             Revolutionary <span className="gradient-text">Features</span>
           </h2>
+          <motion.div
+            className="flex justify-center mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-full">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-blue-400">Built on Malaysia's National Blockchain Infrastructure</span>
+              <div className="px-2 py-1 bg-blue-500/20 rounded text-xs font-bold text-blue-300">MasChain</div>
+            </div>
+          </motion.div>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             Discover how blockchain technology transforms the freelancing experience with cutting-edge features
           </p>

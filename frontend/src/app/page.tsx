@@ -149,6 +149,17 @@ export default function Home() {
               <span className="text-sm font-medium">Revolutionizing Freelancing</span>
             </motion.div>
 
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="mb-6 inline-flex items-center gap-3 rounded-full border border-blue-500/20 bg-blue-500/5 px-6 py-2"
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-blue-400">Powered by Malaysia's National Blockchain</span>
+              <div className="px-2 py-1 bg-blue-500/20 rounded text-xs font-bold text-blue-300">MasChain</div>
+            </motion.div>
+
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
               Smart Contract Escrow
               <span className="relative ml-2 inline-block animate-float">
