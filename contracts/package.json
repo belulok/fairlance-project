@@ -9,7 +9,7 @@
     "deploy:local": "hardhat run deploy.js --network localhost",
     "deploy:sepolia": "hardhat run deploy.js --network sepolia",
     "deploy:mumbai": "hardhat run deploy.js --network polygon_mumbai",
-    "deploy:maschain": "hardhat run deploy.js --network maschain_testnet",
+    "deploy:maschain": "hardhat run scripts/deploy.js --network maschain",
     "node": "hardhat node",
     "clean": "hardhat clean",
     "verify:sepolia": "hardhat verify --network sepolia",
@@ -25,7 +25,7 @@
   "author": "FairLance Team",
   "license": "MIT",
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^3.0.2",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
     "hardhat": "^2.17.1"
   },
   "dependencies": {

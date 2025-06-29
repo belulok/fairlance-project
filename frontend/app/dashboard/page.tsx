@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Link from 'next/link';
 import { 
   User, 
   Briefcase, 
@@ -91,6 +92,10 @@ export default function DashboardPage() {
                   KYC Verified
                 </Badge>
               )}
+              <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-full">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs font-medium text-blue-400">MasChain</span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -138,7 +143,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Average Rating</p>
-                  <p className="text-2xl font-bold">{userStats.averageRating}</p>
+                  <p className="text-2xl font-bold">{Number(userStats.averageRating).toFixed(1)}</p>
                 </div>
               </div>
             </div>
@@ -214,21 +219,29 @@ export default function DashboardPage() {
                   <div className="p-6">
                     <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
                     <div className="space-y-3">
-                      <Button className="w-full web3-button justify-start">
-                        <Briefcase className="w-4 h-4 mr-2" />
-                        Browse New Projects
+                      <Button className="w-full web3-button justify-start" asChild>
+                        <Link href="/projects">
+                          <Briefcase className="w-4 h-4 mr-2" />
+                          Browse New Projects
+                        </Link>
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <User className="w-4 h-4 mr-2" />
-                        Update Profile
+                      <Button variant="outline" className="w-full justify-start" asChild>
+                        <Link href="/profile">
+                          <User className="w-4 h-4 mr-2" />
+                          Update Profile
+                        </Link>
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <TrendingUp className="w-4 h-4 mr-2" />
-                        View Analytics
+                      <Button variant="outline" className="w-full justify-start" asChild>
+                        <Link href="/analytics">
+                          <TrendingUp className="w-4 h-4 mr-2" />
+                          View Analytics
+                        </Link>
                       </Button>
-                      <Button variant="outline" className="w-full justify-start">
-                        <Award className="w-4 h-4 mr-2" />
-                        Skill Leaderboards
+                      <Button variant="outline" className="w-full justify-start" asChild>
+                        <Link href="/leaderboards">
+                          <Award className="w-4 h-4 mr-2" />
+                          Skill Leaderboards
+                        </Link>
                       </Button>
                     </div>
                   </div>

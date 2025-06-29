@@ -8,8 +8,8 @@
   status = 200
 
 [build.environment]
-  NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID = "default-project-id"
-  NEXT_PUBLIC_APP_NAME = "Governance DApp"
+  NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID = "c4f79cc821944d9680842e34466bfbd"
+  NEXT_PUBLIC_APP_NAME = "FairLance"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

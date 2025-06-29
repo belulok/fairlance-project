@@ -4,6 +4,7 @@ import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { motion } from 'framer-motion';
 import { Shield, Zap } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { MasChainConnect } from './MasChainConnect';
 
 export function Header() {
   const [mounted, setMounted] = useState(false);
@@ -62,20 +63,31 @@ export function Header() {
             </motion.a>
           </nav>
 
-          {/* Connect Wallet Button */}
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.5, type: "spring", stiffness: 400, damping: 10 }}
-          >
-            {mounted ? (
-              <ConnectButton />
-            ) : (
-              <div className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
-                Connect Wallet
-              </div>
-            )}
-          </motion.div>
+          <div className="flex items-center space-x-4">
+            {/* MasChain Integration */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <MasChainConnect />
+            </motion.div>
+
+            {/* Connect Wallet Button */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.5, type: "spring", stiffness: 400, damping: 10 }}
+            >
+              {mounted ? (
+                <ConnectButton />
+              ) : (
+                <div className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                  Connect Wallet
+                </div>
+              )}
+            </motion.div>
+          </div>
         </div>
       </div>
     </motion.header>
