@@ -25,21 +25,23 @@ module.exports = {
     // Testnets
     sepolia: {
       url: process.env.SEPOLIA_RPC_URL || "https://sepolia.infura.io/v3/YOUR-PROJECT-ID",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: (process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 64) ? [process.env.PRIVATE_KEY] : [],
       chainId: 11155111
     },
-    
+
     polygon_mumbai: {
       url: process.env.POLYGON_MUMBAI_RPC_URL || "https://rpc-mumbai.maticvigil.com",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      accounts: (process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 64) ? [process.env.PRIVATE_KEY] : [],
       chainId: 80001
     },
-    
-    // MasChain Testnet (if available)
-    maschain_testnet: {
+
+    // MasChain Testnet (Primary Network)
+    maschain: {
       url: process.env.MASCHAIN_RPC_URL || "https://rpc-testnet.maschain.com",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 1337 // Replace with actual MasChain testnet chain ID
+      accounts: (process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 64) ? [process.env.PRIVATE_KEY] : [],
+      chainId: 1337,
+      gasPrice: 20000000000, // 20 gwei
+      gas: 6000000
     }
   },
   
