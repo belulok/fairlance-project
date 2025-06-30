@@ -16,10 +16,7 @@ import {
   Award,
   Link as LinkIcon
 } from 'lucide-react';
-import { useAccount } from 'wagmi';
-import { ClientOnlyConnectButton } from './ClientOnlyConnectButton';
-import { SafeConnectButton } from './SafeConnectButton';
-import { MetaMaskConnectButton } from './MetaMaskConnectButton';
+
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
@@ -83,9 +80,6 @@ export function Navigation() {
             {navigation.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              const canAccess = !item.requiresAuth || isConnected;
-
-              if (!canAccess) return null;
 
               return (
                 <Link
@@ -106,15 +100,13 @@ export function Navigation() {
 
           {/* Right Side */}
           <div className="hidden md:flex items-center gap-4">
-            {isConnected && address && (
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="font-mono text-xs">
-                  {address.slice(0, 6)}...{address.slice(-4)}
-                </Badge>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              </div>
-            )}
-            <SafeConnectButton />
+            <Link
+              href="/maschain"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <LinkIcon className="w-4 h-4 mr-2" />
+              MasChain Wallet
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -162,16 +154,14 @@ export function Navigation() {
               })}
               
               <div className="pt-4 border-t border-border">
-                {isConnected && address && (
-                  <div className="flex items-center gap-2 px-3 py-2 mb-2">
-                    <Badge variant="outline" className="font-mono text-xs">
-                      {address.slice(0, 6)}...{address.slice(-4)}
-                    </Badge>
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  </div>
-                )}
                 <div className="px-3">
-                  <SafeConnectButton />
+                  <Link
+                    href="/maschain"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full justify-center"
+                  >
+                    <LinkIcon className="w-4 h-4 mr-2" />
+                    MasChain Wallet
+                  </Link>
                 </div>
               </div>
             </div>

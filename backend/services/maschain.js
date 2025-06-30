@@ -7,64 +7,70 @@ class MasChainService {
     this.portalURL = process.env.MASCHAIN_PORTAL_URL;
     this.explorerURL = process.env.MASCHAIN_EXPLORER_URL;
     
-    // API credentials for different services
+    // API credentials - using single key for all services
+    this.apiKey = process.env.MASCHAIN_API_KEY;
+    this.apiSecret = process.env.MASCHAIN_API_SECRET;
+
+    // API credentials for different services (fallback to main credentials)
     this.credentials = {
       wallet: {
-        apiKey: process.env.MASCHAIN_WALLET_API_KEY,
-        apiSecret: process.env.MASCHAIN_WALLET_API_SECRET
+        apiKey: process.env.MASCHAIN_WALLET_API_KEY || this.apiKey,
+        apiSecret: process.env.MASCHAIN_WALLET_API_SECRET || this.apiSecret
       },
       token: {
-        apiKey: process.env.MASCHAIN_TOKEN_API_KEY,
-        apiSecret: process.env.MASCHAIN_TOKEN_API_SECRET
-      },
-      kyc: {
-        apiKey: process.env.MASCHAIN_KYC_API_KEY,
-        apiSecret: process.env.MASCHAIN_KYC_API_SECRET
+        apiKey: process.env.MASCHAIN_TOKEN_API_KEY || this.apiKey,
+        apiSecret: process.env.MASCHAIN_TOKEN_API_SECRET || this.apiSecret
       },
       contract: {
-        apiKey: process.env.MASCHAIN_CONTRACT_API_KEY,
-        apiSecret: process.env.MASCHAIN_CONTRACT_API_SECRET
+        apiKey: process.env.MASCHAIN_CONTRACT_API_KEY || this.apiKey,
+        apiSecret: process.env.MASCHAIN_CONTRACT_API_SECRET || this.apiSecret
+      },
+      nft: {
+        apiKey: process.env.MASCHAIN_NFT_API_KEY || this.apiKey,
+        apiSecret: process.env.MASCHAIN_NFT_API_SECRET || this.apiSecret
+      },
+      audit: {
+        apiKey: process.env.MASCHAIN_AUDIT_API_KEY || this.apiKey,
+        apiSecret: process.env.MASCHAIN_AUDIT_API_SECRET || this.apiSecret
       }
     };
   }
 
   // Generate authentication headers for MasChain API
-  generateAuthHeaders(service, method, endpoint, body = '') {
-    const timestamp = Date.now().toString();
-    const creds = this.credentials[service];
-    
+  generateAuthHeaders(service = 'default') {
+    const creds = this.credentials[service] || { apiKey: this.apiKey, apiSecret: this.apiSecret };
+
     if (!creds.apiKey || !creds.apiSecret) {
       throw new Error(`MasChain ${service} credentials not configured`);
     }
 
-    // Create signature string
-    const signatureString = `${method}${endpoint}${timestamp}${body}`;
-    const signature = crypto
-      .createHmac('sha256', creds.apiSecret)
-      .update(signatureString)
-      .digest('hex');
-
     return {
-      'X-API-KEY': creds.apiKey,
-      'X-SIGNATURE': signature,
-      'X-TIMESTAMP': timestamp,
+      'client_id': creds.apiKey,
+      'client_secret': creds.apiSecret,
       'Content-Type': 'application/json'
     };
   }
 
-  // Wallet Management Service
-  async createWallet(userId, walletName) {
+  // Wallet Management Service - MasChain creates and manages wallets server-side
+  async createMasChainWallet(userData) {
     try {
-      const endpoint = '/api/wallet/create-wallet';
-      const body = JSON.stringify({
-        user_id: userId,
-        wallet_name: walletName || `FairLance_${userId}`,
-        callback_url: `${process.env.BACKEND_URL}/api/maschain/wallet-callback`
-      });
+      // For MasChain, we need to generate a wallet address first or use organization wallet
+      // Let's create a simple wallet identifier for demo purposes
+      const walletAddress = this.generateWalletAddress();
 
-      const headers = this.generateAuthHeaders('wallet', 'POST', endpoint, body);
-      
-      const response = await axios.post(`${this.baseURL}${endpoint}`, JSON.parse(body), {
+      const endpoint = '/api/wallet/create-self-custodian-user';
+      const body = {
+        name: userData.name,
+        email: userData.email,
+        wallet_address: walletAddress,
+        wallet_name: userData.walletName || `FairLance_${userData.name}`,
+        phone: userData.phone || null,
+        ic: userData.ic || null
+      };
+
+      const headers = this.generateAuthHeaders('wallet');
+
+      const response = await axios.post(`${this.baseURL}${endpoint}`, body, {
         headers
       });
 
@@ -75,11 +81,21 @@ class MasChainService {
     }
   }
 
-  async getWalletBalance(walletAddress) {
+  // Generate a demo wallet address (in production, this would be handled differently)
+  generateWalletAddress() {
+    const chars = '0123456789abcdef';
+    let address = '0x';
+    for (let i = 0; i < 40; i++) {
+      address += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return address;
+  }
+
+  async getMasChainWalletBalance(walletId) {
     try {
-      const endpoint = `/api/wallet/wallet-balance/${walletAddress}`;
-      const headers = this.generateAuthHeaders('wallet', 'GET', endpoint);
-      
+      const endpoint = `/api/wallet/balance/${walletId}`;
+      const headers = this.generateAuthHeaders('wallet');
+
       const response = await axios.get(`${this.baseURL}${endpoint}`, {
         headers
       });
@@ -91,45 +107,53 @@ class MasChainService {
     }
   }
 
-  // Token Management Service
-  async createToken(tokenData) {
+  async getWalletTransactions(walletAddress, showFee = 0) {
     try {
-      const endpoint = '/api/token/create-token';
-      const body = JSON.stringify({
-        token_name: tokenData.name,
-        token_symbol: tokenData.symbol,
-        total_supply: tokenData.totalSupply,
-        decimals: tokenData.decimals || 18,
-        callback_url: `${process.env.BACKEND_URL}/api/maschain/token-callback`
-      });
+      const endpoint = `/api/wallet/get-wallet-transactions?address=${walletAddress}&show_fee=${showFee}`;
+      const headers = this.generateAuthHeaders('wallet');
 
-      const headers = this.generateAuthHeaders('token', 'POST', endpoint, body);
-      
-      const response = await axios.post(`${this.baseURL}${endpoint}`, JSON.parse(body), {
+      const response = await axios.get(`${this.baseURL}${endpoint}`, {
         headers
       });
 
       return response.data;
     } catch (error) {
-      console.error('MasChain Create Token Error:', error.response?.data || error.message);
-      throw new Error('Failed to create token');
+      console.error('MasChain Get Transactions Error:', error.response?.data || error.message);
+      throw new Error('Failed to get wallet transactions');
     }
   }
 
-  async transferToken(fromWallet, toWallet, tokenAddress, amount) {
+  async getTokenTransfers(walletAddress) {
     try {
-      const endpoint = '/api/token/transfer-token';
-      const body = JSON.stringify({
-        from_wallet: fromWallet,
-        to_wallet: toWallet,
-        token_contract_address: tokenAddress,
-        amount: amount.toString(),
-        callback_url: `${process.env.BACKEND_URL}/api/maschain/transfer-callback`
+      const endpoint = `/api/wallet/get-token-transfers?wallet_address=${walletAddress}`;
+      const headers = this.generateAuthHeaders('wallet');
+
+      const response = await axios.post(`${this.baseURL}${endpoint}`, {}, {
+        headers
       });
 
-      const headers = this.generateAuthHeaders('token', 'POST', endpoint, body);
-      
-      const response = await axios.post(`${this.baseURL}${endpoint}`, JSON.parse(body), {
+      return response.data;
+    } catch (error) {
+      console.error('MasChain Get Token Transfers Error:', error.response?.data || error.message);
+      throw new Error('Failed to get token transfers');
+    }
+  }
+
+  // Token Management Service
+  async transferToken(fromWalletId, toAddress, contractAddress, amount) {
+    try {
+      const endpoint = '/api/token/token-transfer';
+      const body = {
+        wallet_address: `wallet_${fromWalletId}`, // MasChain wallet identifier
+        to: toAddress, // Can be wallet address or another wallet ID
+        contract_address: contractAddress,
+        amount: amount.toString(),
+        callback_url: `${process.env.BACKEND_URL}/api/maschain/transfer-callback`
+      };
+
+      const headers = this.generateAuthHeaders('token');
+
+      const response = await axios.post(`${this.baseURL}${endpoint}`, body, {
         headers
       });
 
@@ -137,6 +161,51 @@ class MasChainService {
     } catch (error) {
       console.error('MasChain Transfer Token Error:', error.response?.data || error.message);
       throw new Error('Failed to transfer token');
+    }
+  }
+
+  async mintToken(walletId, toWalletId, contractAddress, amount) {
+    try {
+      const endpoint = '/api/token/mint';
+      const body = {
+        wallet_address: `wallet_${walletId}`, // MasChain wallet identifier
+        to: `wallet_${toWalletId}`, // Target wallet identifier
+        contract_address: contractAddress,
+        amount: amount.toString(),
+        callback_url: `${process.env.BACKEND_URL}/api/maschain/mint-callback`
+      };
+
+      const headers = this.generateAuthHeaders('token');
+
+      const response = await axios.post(`${this.baseURL}${endpoint}`, body, {
+        headers
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('MasChain Mint Token Error:', error.response?.data || error.message);
+      throw new Error('Failed to mint token');
+    }
+  }
+
+  async getTokenBalance(walletAddress, contractAddress) {
+    try {
+      const endpoint = '/api/token/balance';
+      const body = {
+        wallet_address: walletAddress,
+        contract_address: contractAddress
+      };
+
+      const headers = this.generateAuthHeaders('token');
+
+      const response = await axios.post(`${this.baseURL}${endpoint}`, body, {
+        headers
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('MasChain Get Token Balance Error:', error.response?.data || error.message);
+      throw new Error('Failed to get token balance');
     }
   }
 

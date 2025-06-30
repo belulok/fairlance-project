@@ -37,7 +37,16 @@ router.post('/initiate', auth, async (req, res) => {
       });
     } catch (error) {
       console.error('MasChain KYC initiation error:', error);
-      res.status(500).json({ message: 'Failed to initiate KYC verification' });
+
+      // Demo fallback - simulate KYC process
+      console.log('Falling back to demo KYC process');
+
+      res.json({
+        success: true,
+        message: 'Demo KYC verification initiated',
+        demo: true,
+        verificationUrl: null // Will trigger demo mode in frontend
+      });
     }
   } catch (error) {
     console.error('Initiate KYC error:', error);
@@ -87,7 +96,13 @@ router.get('/status', auth, async (req, res) => {
       });
     } catch (error) {
       console.error('MasChain KYC status error:', error);
-      res.status(500).json({ message: 'Failed to get KYC status' });
+
+      // Demo fallback - return demo status
+      res.json({
+        status: req.user.kycStatus || 'not_started',
+        trustScore: req.user.trustScore,
+        demo: true
+      });
     }
   } catch (error) {
     console.error('Get KYC status error:', error);

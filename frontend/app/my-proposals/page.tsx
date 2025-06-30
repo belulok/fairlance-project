@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { MasChainConnectButton } from '@/app/components/MasChainConnectButton';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -119,11 +119,29 @@ function ProposalCard({ proposal }: { proposal: typeof mockMyProposals[0] }) {
 }
 
 export default function MyProposals() {
-  const { isConnected, address } = useAccount();
+  const [isConnected, setIsConnected] = useState(false);
+  const [address, setAddress] = useState('');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+
+    const checkMasChainConnection = () => {
+      const masChainWallet = localStorage.getItem('maschain_wallet');
+      if (masChainWallet) {
+        try {
+          const walletData = JSON.parse(masChainWallet);
+          if (walletData.address) {
+            setIsConnected(true);
+            setAddress(walletData.address);
+          }
+        } catch (error) {
+          console.error('Error parsing MasChain wallet data:', error);
+        }
+      }
+    };
+
+    checkMasChainConnection();
   }, []);
 
   if (!mounted) {
@@ -143,12 +161,12 @@ export default function MyProposals() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl font-bold mb-4">Connect Wallet</h1>
+            <h1 className="text-3xl font-bold mb-4">Connect MasChain Wallet</h1>
             <p className="text-muted-foreground mb-8">
-              Please connect your wallet to view your proposals
+              Please connect your MasChain wallet to view your proposals
             </p>
             <div className="flex justify-center gap-4">
-              <ConnectButton />
+              <MasChainConnectButton />
               <Link href="/proposals">
                 <Button variant="outline" className="web3-button">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -187,7 +205,7 @@ export default function MyProposals() {
                 <h1 className="text-3xl font-bold">My Proposals</h1>
               </div>
               <div className="flex items-center gap-4">
-                <ConnectButton />
+                <MasChainConnectButton showNetworkBadge={false} />
                 <Link href="/create">
                   <Button className="web3-button">
                     Create New Proposal

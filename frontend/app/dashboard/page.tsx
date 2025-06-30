@@ -19,14 +19,15 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import { useAccount } from 'wagmi';
+import { MasChainConnectButton } from '@/app/components/MasChainConnectButton';
 import { KYCVerification } from '@/app/components/KYCVerification';
 import { SkillTokenDashboard } from '@/app/components/SkillTokenDashboard';
 import { ProofOfWorkSubmission } from '@/app/components/ProofOfWorkSubmission';
 import { toast } from 'sonner';
 
 export default function DashboardPage() {
-  const { isConnected, address } = useAccount();
+  const [isConnected, setIsConnected] = useState(false);
+  const [address, setAddress] = useState('');
   const [mounted, setMounted] = useState(false);
   const [userStats, setUserStats] = useState({
     projectsCompleted: 12,
@@ -40,6 +41,64 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
+
+    const checkMasChainConnection = () => {
+      console.log('Dashboard: Checking MasChain connection...');
+      const masChainWallet = localStorage.getItem('maschain_wallet');
+      console.log('Dashboard: Retrieved wallet data:', masChainWallet);
+
+      if (masChainWallet) {
+        try {
+          const walletData = JSON.parse(masChainWallet);
+          console.log('Dashboard: Parsed wallet data:', walletData);
+
+          if (walletData.address) {
+            console.log('Dashboard: Setting connected to true with address:', walletData.address);
+            setIsConnected(true);
+            setAddress(walletData.address);
+          } else {
+            console.log('Dashboard: No address found in wallet data');
+          }
+        } catch (error) {
+          console.error('Dashboard: Error parsing MasChain wallet data:', error);
+        }
+      } else {
+        console.log('Dashboard: No wallet data found in localStorage');
+      }
+    };
+
+    checkMasChainConnection();
+
+    // Demo: Set a demo authentication token for KYC functionality
+    if (!localStorage.getItem('fairlance_token')) {
+      const demoToken = 'demo_token_' + Date.now();
+      localStorage.setItem('fairlance_token', demoToken);
+      console.log('Demo: Set authentication token for KYC functionality');
+    }
+
+    // Listen for storage changes (when wallet is created in another tab/component)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'maschain_wallet') {
+        checkMasChainConnection();
+      }
+    };
+
+    // Listen for custom wallet connection events
+    const handleWalletConnection = () => {
+      checkMasChainConnection();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('maschain-wallet-connected', handleWalletConnection);
+
+    // Also check periodically in case localStorage was updated in the same tab
+    const interval = setInterval(checkMasChainConnection, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('maschain-wallet-connected', handleWalletConnection);
+      clearInterval(interval);
+    };
   }, []);
 
   if (!mounted) {
@@ -56,9 +115,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground mb-6">
               Please connect your wallet to access your FairLance dashboard
             </p>
-            <Button className="web3-button w-full">
-              Connect Wallet
-            </Button>
+            <MasChainConnectButton className="web3-button w-full" />
           </div>
         </Card>
       </div>

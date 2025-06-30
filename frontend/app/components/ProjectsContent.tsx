@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { ClientOnlyConnectButton } from '@/app/components/ClientOnlyConnectButton';
+import { MasChainConnectButton } from '@/app/components/MasChainConnectButton';
 import { api, type Project } from '@/lib/api';
 import SimplePagination from './SimplePagination';
 
@@ -123,8 +123,24 @@ const categories = [
 ];
 
 function ProjectCard({ project }: { project: any }) {
-  const { isConnected } = useAccount();
+  const [isConnected, setIsConnected] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
+
+  useEffect(() => {
+    const checkMasChainConnection = () => {
+      const masChainWallet = localStorage.getItem('maschain_wallet');
+      if (masChainWallet) {
+        try {
+          const walletData = JSON.parse(masChainWallet);
+          setIsConnected(!!walletData.address);
+        } catch (error) {
+          console.error('Error parsing MasChain wallet data:', error);
+        }
+      }
+    };
+
+    checkMasChainConnection();
+  }, []);
 
   const handleApply = async () => {
     if (!isConnected) {
@@ -147,10 +163,13 @@ function ProjectCard({ project }: { project: any }) {
   };
 
   // Handle both API format and mock format
-  const deadline = typeof project.deadline === 'string' ? new Date(project.deadline) : project.deadline;
-  const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const budget = typeof project.budget === 'string' ? project.budget : `${project.budget.min}-${project.budget.max} ${project.budget.currency}`;
-  const proposalCount = project.proposals || 0;
+  const deadline = project.deadline
+    ? (typeof project.deadline === 'string' ? new Date(project.deadline) : project.deadline)
+    : (project.timeline?.endDate ? new Date(project.timeline.endDate) : null);
+
+  const daysLeft = deadline ? Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+  const budget = typeof project.budget === 'string' ? project.budget : `$${project.budget.min}-${project.budget.max} ${project.budget.currency}`;
+  const proposalCount = Array.isArray(project.proposals) ? project.proposals.length : (project.proposals || 0);
 
   return (
     <motion.div
@@ -204,12 +223,15 @@ function ProjectCard({ project }: { project: any }) {
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  <span>{daysLeft} days left</span>
+                  <span>{daysLeft !== null ? `${daysLeft} days left` : 'No deadline set'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <User className="w-4 h-4" />
-                  <span>{project.client.name}</span>
-                  {project.client.verified && (
+                  <span>
+                    {project.client?.name ||
+                     (project.clientId ? `${project.clientId.firstName} ${project.clientId.lastName}` : 'Unknown Client')}
+                  </span>
+                  {(project.client?.verified || project.clientId?.isVerified) && (
                     <Badge variant="outline" className="text-xs ml-1">
                       ✓ Verified
                     </Badge>
@@ -220,9 +242,15 @@ function ProjectCard({ project }: { project: any }) {
               <div className="flex items-center gap-2 text-sm">
                 <div className="flex items-center gap-1">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span>{Number(project.client.rating).toFixed(1)}</span>
+                  <span>
+                    {project.client?.rating
+                      ? Number(project.client.rating).toFixed(1)
+                      : (project.clientId?.trustScore ? (project.clientId.trustScore / 20).toFixed(1) : '5.0')}
+                  </span>
                 </div>
-                <span className="text-muted-foreground">({project.client.reviews} reviews)</span>
+                <span className="text-muted-foreground">
+                  ({project.client?.reviews || 'No reviews yet'})
+                </span>
               </div>
             </div>
           </div>
@@ -254,7 +282,7 @@ function ProjectCard({ project }: { project: any }) {
 }
 
 export function ProjectsContent() {
-  const { isConnected } = useAccount();
+  const [isConnected, setIsConnected] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -270,6 +298,20 @@ export function ProjectsContent() {
   useEffect(() => {
     setMounted(true);
     loadProjects();
+
+    const checkMasChainConnection = () => {
+      const masChainWallet = localStorage.getItem('maschain_wallet');
+      if (masChainWallet) {
+        try {
+          const walletData = JSON.parse(masChainWallet);
+          setIsConnected(!!walletData.address);
+        } catch (error) {
+          console.error('Error parsing MasChain wallet data:', error);
+        }
+      }
+    };
+
+    checkMasChainConnection();
   }, []);
 
   useEffect(() => {
@@ -340,9 +382,9 @@ export function ProjectsContent() {
             </p>
             {!isConnected && (
               <div className="mb-8">
-                <ClientOnlyConnectButton />
+                <MasChainConnectButton className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700" />
                 <p className="text-sm text-muted-foreground mt-2">
-                  Connect your wallet to apply for projects
+                  Connect your MasChain wallet to apply for projects
                 </p>
               </div>
             )}

@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Shield, Users, Zap, ChevronRight, Sparkles, ExternalLink, DollarSign, Globe, Code } from 'lucide-react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
-import { SafeConnectButton } from '@/app/components/SafeConnectButton';
-import { useSafeWeb3 } from '@/app/components/SafeWeb3Provider';
+import { MasChainConnectButton } from '@/app/components/MasChainConnectButton';
 import { useEffect, useState } from 'react';
 
 // Mock featured projects data
@@ -110,18 +109,29 @@ function FeatureCard({ icon: Icon, title, description, link }: {
 
 // Safe hook wrapper that handles provider errors
 function useSafeAccount() {
-  const fallback = useSafeWeb3();
+  const [isConnected, setIsConnected] = useState(false);
+  const [address, setAddress] = useState('');
 
-  try {
-    const wagmiAccount = useAccount();
-    return wagmiAccount;
-  } catch (error) {
-    console.warn('Wagmi provider not available, using fallback:', error);
-    return {
-      isConnected: fallback.isConnected,
-      address: fallback.address
+  useEffect(() => {
+    const checkMasChainConnection = () => {
+      const masChainWallet = localStorage.getItem('maschain_wallet');
+      if (masChainWallet) {
+        try {
+          const walletData = JSON.parse(masChainWallet);
+          if (walletData.address) {
+            setIsConnected(true);
+            setAddress(walletData.address);
+          }
+        } catch (error) {
+          console.error('Error parsing MasChain wallet data:', error);
+        }
+      }
     };
-  }
+
+    checkMasChainConnection();
+  }, []);
+
+  return { isConnected, address };
 }
 
 export function HomeContent() {
@@ -212,7 +222,7 @@ export function HomeContent() {
                     transition={{ delay: 0.7, duration: 0.8 }}
                     className="flex flex-col sm:flex-row gap-4"
                   >
-                    <SafeConnectButton />
+                    <MasChainConnectButton className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" />
                     {isConnected && (
                       <Link href="/projects">
                         <Button className="web3-button group">

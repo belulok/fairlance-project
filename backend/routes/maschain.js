@@ -21,23 +21,56 @@ router.get('/health', async (req, res) => {
   }
 });
 
-// Wallet Management Routes
-router.post('/wallet/create', auth, async (req, res) => {
+// Wallet Management Routes - MasChain server-side wallet creation
+router.post('/wallet/create', async (req, res) => {
   try {
-    const { walletName } = req.body;
-    const userId = req.user.id;
+    const { name, email, phone, ic, walletName } = req.body;
 
-    const result = await masChainService.createWallet(userId, walletName);
-    
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name and email are required'
+      });
+    }
+
+    const userData = {
+      name,
+      email,
+      phone,
+      ic,
+      walletName: walletName || `${name}_FairLance_Wallet`
+    };
+
+    const result = await masChainService.createMasChainWallet(userData);
+
     res.json({
       success: true,
-      message: 'Wallet creation initiated',
+      message: 'MasChain wallet created successfully',
       data: result
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to create wallet',
+      message: 'Failed to create MasChain wallet',
+      error: error.message
+    });
+  }
+});
+
+router.get('/wallet/balance/:walletId', async (req, res) => {
+  try {
+    const { walletId } = req.params;
+    const result = await masChainService.getMasChainWalletBalance(walletId);
+
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get wallet balance',
       error: error.message
     });
   }
@@ -81,11 +114,47 @@ router.post('/token/create', auth, async (req, res) => {
   }
 });
 
-router.post('/token/transfer', auth, async (req, res) => {
+router.post('/token/mint', async (req, res) => {
   try {
-    const { fromWallet, toWallet, tokenAddress, amount } = req.body;
-    const result = await masChainService.transferToken(fromWallet, toWallet, tokenAddress, amount);
-    
+    const { walletId, amount, tokenContract } = req.body;
+
+    // For demo purposes, we'll use a default token contract
+    const defaultTokenContract = '0x6326aFF363CcCdF4404450c24B48b926dDCeC88C';
+
+    const result = await masChainService.mintToken(
+      walletId,
+      walletId, // mint to same wallet
+      tokenContract || defaultTokenContract,
+      amount
+    );
+
+    res.json({
+      success: true,
+      message: 'Token minting initiated',
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mint tokens',
+      error: error.message
+    });
+  }
+});
+
+router.post('/token/transfer', async (req, res) => {
+  try {
+    const { fromWalletId, toAddress, amount, tokenContract } = req.body;
+
+    const defaultTokenContract = '0x6326aFF363CcCdF4404450c24B48b926dDCeC88C';
+
+    const result = await masChainService.transferToken(
+      fromWalletId,
+      toAddress,
+      tokenContract || defaultTokenContract,
+      amount
+    );
+
     res.json({
       success: true,
       message: 'Token transfer initiated',
@@ -94,7 +163,7 @@ router.post('/token/transfer', auth, async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: 'Failed to transfer token',
+      message: 'Failed to transfer tokens',
       error: error.message
     });
   }
@@ -206,10 +275,51 @@ router.post('/kyc-callback', async (req, res) => {
   try {
     console.log('MasChain KYC Callback:', req.body);
     // Handle KYC status callback
-    
+
     res.json({ success: true, message: 'Callback received' });
   } catch (error) {
     console.error('KYC callback error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/deployment-callback', async (req, res) => {
+  try {
+    console.log('🎉 MasChain Deployment Callback:', JSON.stringify(req.body, null, 2));
+
+    const { status, message, deployment_id, deployed_contract_addresses } = req.body;
+
+    // Update deployment info file
+    const fs = require('fs');
+    const path = require('path');
+    const deploymentInfoPath = path.join(__dirname, '../deployment-info.json');
+
+    if (fs.existsSync(deploymentInfoPath)) {
+      const deploymentInfo = JSON.parse(fs.readFileSync(deploymentInfoPath, 'utf8'));
+
+      deploymentInfo.status = status;
+      deploymentInfo.message = message;
+      deploymentInfo.completedAt = new Date().toISOString();
+
+      if (status === 'Completed' && deployed_contract_addresses && deployed_contract_addresses.length > 0) {
+        const contractInfo = deployed_contract_addresses[0];
+        deploymentInfo.contractAddress = contractInfo.contract_address;
+        deploymentInfo.transactionHash = contractInfo.receipt.transactionHash;
+        deploymentInfo.blockNumber = contractInfo.receipt.blockNumber;
+        deploymentInfo.gasUsed = contractInfo.receipt.gasUsed;
+
+        console.log('🎊 Contract deployed successfully!');
+        console.log(`📋 Contract Address: ${contractInfo.contract_address}`);
+        console.log(`🔗 Transaction Hash: ${contractInfo.receipt.transactionHash}`);
+        console.log(`🌐 Explorer: https://explorer-testnet.maschain.com/tx/${contractInfo.receipt.transactionHash}`);
+      }
+
+      fs.writeFileSync(deploymentInfoPath, JSON.stringify(deploymentInfo, null, 2));
+    }
+
+    res.json({ success: true, message: 'Deployment callback processed' });
+  } catch (error) {
+    console.error('Deployment callback error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

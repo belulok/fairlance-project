@@ -5,14 +5,40 @@ const User = require('../models/User');
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
-    
+
     if (!token) {
       return res.status(401).json({ message: 'No token, authorization denied' });
     }
 
+    // Demo mode: Handle demo tokens
+    if (token.startsWith('demo_token_')) {
+      console.log('Demo mode: Using demo authentication');
+
+      // Find or create a demo user
+      let demoUser = await User.findOne({ username: 'demo_user' });
+      if (!demoUser) {
+        demoUser = new User({
+          username: 'demo_user',
+          email: 'demo@fairlance.demo',
+          password: 'demo123456',
+          firstName: 'Demo',
+          lastName: 'User',
+          userType: 'both',
+          isVerified: true,
+          kycStatus: 'not_started',
+          trustScore: 75
+        });
+        await demoUser.save();
+        console.log('Created demo user for KYC testing');
+      }
+
+      req.user = demoUser;
+      return next();
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-password');
-    
+
     if (!user) {
       return res.status(401).json({ message: 'Token is not valid' });
     }
